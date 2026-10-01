@@ -1,14 +1,24 @@
 package com.example.mongocrudspring.service.impl;
 
+import com.example.mongocrudspring.exception.ResourceNotFoundException;
+import com.example.mongocrudspring.model.User;
+import com.example.mongocrudspring.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository repo;
+    private final UserRepository repo;
+    private final UserProducer producer;
 
     @Autowired
-    private UserProducer producer;
+    public UserServiceImpl(UserRepository repo, UserProducer producer) {
+        this.repo = repo;
+        this.producer = producer;
+    }
 
     @Override
     public User createUser(User user) {
@@ -25,7 +35,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(String id) {
         return repo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
     @Override
@@ -36,7 +46,6 @@ public class UserServiceImpl implements UserService {
 
         User updated = repo.save(existing);
         producer.sendMessage("User Updated: " + updated.getId());
-
         return updated;
     }
 
