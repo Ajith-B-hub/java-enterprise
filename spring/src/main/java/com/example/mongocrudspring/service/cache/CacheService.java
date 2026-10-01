@@ -22,48 +22,35 @@ public class CacheService {
 
     public void cacheUser(User user, long timeout, TimeUnit unit) {
         String key = "user:" + user.getId();
-        redisTemplate.opsForValue().set(key, convertToJson(user), timeout, unit);
+        redisTemplate.opsForValue().set(key, toJson(user), timeout, unit);
     }
 
     public User getCachedUser(String userId) {
         String key = "user:" + userId;
-        Object cachedUser = redisTemplate.opsForValue().get(key);
-        if (cachedUser != null) {
-            return convertFromJson(cachedUser.toString(), User.class);
+        Object cached = redisTemplate.opsForValue().get(key);
+        if (cached == null) {
+            return null;
         }
-        return null;
+        return fromJson(cached.toString(), User.class);
     }
 
     public void invalidateUserCache(String userId) {
-        String key = "user:" + userId;
-        redisTemplate.delete(key);
+        redisTemplate.delete("user:" + userId);
     }
 
-    public void cacheAllUsers(String key, Object data, long timeout, TimeUnit unit) {
-        redisTemplate.opsForValue().set(key, convertToJson(data), timeout, unit);
-    }
-
-    public Object getCachedData(String key) {
-        return redisTemplate.opsForValue().get(key);
-    }
-
-    public void invalidateCache(String key) {
-        redisTemplate.delete(key);
-    }
-
-    private String convertToJson(Object obj) {
+    private String toJson(Object value) {
         try {
-            return objectMapper.writeValueAsString(obj);
+            return objectMapper.writeValueAsString(value);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to convert object to JSON", e);
+            throw new RuntimeException("JSON conversion failed", e);
         }
     }
 
-    private <T> T convertFromJson(String json, Class<T> type) {
+    private <T> T fromJson(String json, Class<T> clazz) {
         try {
-            return objectMapper.readValue(json, type);
+            return objectMapper.readValue(json, clazz);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to convert JSON to object", e);
+            throw new RuntimeException("JSON conversion failed", e);
         }
     }
 }

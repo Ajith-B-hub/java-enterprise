@@ -8,6 +8,6 @@ public class UserConsumer {
 
     @KafkaListener(topics = "user-events", groupId = "group_id")
     public void consume(String message) {
-        System.out.println("Consumed message: " + message);
+        System.out.println("Consumed user event: " + message);
     }
 }
